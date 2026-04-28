@@ -4,7 +4,7 @@
    ============================================================ */
 
 // ─── CONFIGURA AQUÍ TU WEBHOOK DE N8N ───────────────────────
-const N8N_WEBHOOK_URL = 'https://TU_DOMINIO_N8N/webhook/TU_ENDPOINT';
+const N8N_WEBHOOK_URL = 'https://juanbeltran.app.n8n.cloud/webhook-test/webhook-solicitudes';
 //
 // Campos que llegarán al webhook:
 //   ID_estudiante | Correo | Nombre | Teléfono | Curso
