@@ -4,7 +4,7 @@
    ============================================================ */
 
 // ─── CONFIGURA AQUÍ TU WEBHOOK DE N8N ───────────────────────
-const N8N_WEBHOOK_URL = 'https://juanbeltran.app.n8n.cloud/webhook-test/webhook-solicitudes';
+const N8N_WEBHOOK_URL = 'https://juanbeltran.app.n8n.cloud/webhook-test/justificacion';
 //
 // Campos que llegarán al webhook:
 //   ID_estudiante | Correo | Nombre | Teléfono | Curso
@@ -226,7 +226,7 @@ form.addEventListener('submit', async (e) => {
   payload.append('Teléfono',           document.getElementById('telefono').value.trim());
   payload.append('Curso',              document.getElementById('curso').value);
   payload.append('Motivo_inasistencia', document.querySelector('input[name="motivo_categoria"]:checked').value);
-  payload.append('Url_imagen',         selectedFile, selectedFile.name); // binario → n8n lo sube y genera URL
+  payload.append('Url_imagen',         selectedFile); // binario → n8n lo sube y genera URL
 
   // ── Contexto adicional ────────────────────────────────────────
   payload.append('fecha_inicio',   inicio);
