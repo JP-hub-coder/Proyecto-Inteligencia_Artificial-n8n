@@ -4,11 +4,11 @@
    ============================================================ */
 
 // ─── CONFIGURA AQUÍ TU WEBHOOK DE N8N ───────────────────────
+const N8N_WEBHOOK_URL = 'https://juanbeltran.app.n8n.cloud/webhook-test/justificacion';
 
+// para uso en ngrok descomente esta linea y comente la otra:
 // const N8N_WEBHOOK_URL = 'https://monthly-zipfile-pessimism.ngrok-free.dev/webhook-test/justificacion';
 
-// para uso en cloud descomente esta linea y comente la otra:
- const N8N_WEBHOOK_URL = 'https://juanbeltran.app.n8n.cloud/webhook-test/justificacion';
 //
 // Campos que llegarán al webhook:
 //   ID_estudiante | Correo | Nombre | Teléfono | Curso
