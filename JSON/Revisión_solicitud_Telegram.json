@@ -1,0 +1,445 @@
+{
+    "nodes": [
+      {
+        "parameters": {
+          "updates": [
+            "message"
+          ],
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.telegramTrigger",
+        "typeVersion": 1.2,
+        "position": [
+          -2224,
+          752
+        ],
+        "id": "060bf45f-347e-45b9-b630-96d70762c998",
+        "name": "Telegram Trigger",
+        "webhookId": "b54b1761-c14d-453f-906a-c02b63fddd26",
+        "credentials": {
+          "telegramApi": {
+            "id": "g6MKDRB9nGvHTXQQ",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "57da5d7e-3712-44b6-adb5-ff7216843d02",
+                "name": "ID_estudiante",
+                "value": "={{ $json.ID_estudiante }}",
+                "type": "string"
+              },
+              {
+                "id": "ab47ab19-84ef-4d79-a4b1-8151dee34dba",
+                "name": "Correo",
+                "value": "={{ $json.Correo }}",
+                "type": "string"
+              },
+              {
+                "id": "3c7ad7a6-47bd-438c-898b-53e3e3ad136c",
+                "name": "Nombre",
+                "value": "={{ $json.Nombre }}",
+                "type": "string"
+              },
+              {
+                "id": "f897deeb-2bb8-4737-a951-d1cabf3937f9",
+                "name": "Teléfono",
+                "value": "={{ $json['Teléfono'] }}",
+                "type": "string"
+              },
+              {
+                "id": "6a2a16fa-6e3c-47dc-b6f7-1ff991c5bc13",
+                "name": "Curso",
+                "value": "={{ $json.Curso }}",
+                "type": "string"
+              },
+              {
+                "id": "02bcac03-13df-4c5c-a6e3-bfcb0455061d",
+                "name": "Motivo_inasistencia",
+                "value": "={{ $json.Motivo_Inasistencia }}",
+                "type": "string"
+              },
+              {
+                "id": "1624c0cd-17f9-4f13-8114-a45d5ed0afdd",
+                "name": "Descripción_motivo",
+                "value": "={{ $json['Descripción_motivo'] }}",
+                "type": "string"
+              },
+              {
+                "id": "2710c02e-b964-412a-8584-a76de702c018",
+                "name": "Url_imagen",
+                "value": "={{ $json.Url_imagen }}",
+                "type": "string"
+              },
+              {
+                "id": "e1a94efb-e29a-418d-afd3-02352561811c",
+                "name": "Validación",
+                "value": "={{ $json['Validación'] }}",
+                "type": "string"
+              },
+              {
+                "id": "954fd5bc-e829-4a2b-8a13-60b971b7b2db",
+                "name": "Nivel_de_confianza",
+                "value": "={{ $json.Nivel_de_confianza }}",
+                "type": "string"
+              },
+              {
+                "id": "8a46d522-36f5-458e-939e-e2dbfba84a04",
+                "name": "ID_solicitud",
+                "value": "={{ $json.ID_solicitud }}",
+                "type": "string"
+              },
+              {
+                "id": "c783c570-5848-49c7-a561-99ca6c41bb80",
+                "name": "Estado_sol",
+                "value": "={{ $json.Estado_sol }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -1664,
+          672
+        ],
+        "id": "d7d6ad99-56ce-4b39-9b6d-c811f73ffa3d",
+        "name": "Edit Fields"
+      },
+      {
+        "parameters": {
+          "chatId": "8697293554",
+          "text": "=Información de la solicitud requerida, gracias por usar el sistema =)\n\nSolicitud:  {{ $json.ID_solicitud }}\nEstudiante ID: {{ $json.ID_estudiante }}\nNombre Estudiante: {{ $json.Nombre }}\nTeléfono: {{ $json['Teléfono'] }}\nCorreo: {{ $json.Correo }} \nMotivo inasistencia: {{ $json.Motivo_inasistencia }}\nImagen soporte: {{ $json.Url_imagen }}\nValidación: {{ $json['Validación'] }}\nConfianza: {{ $json.Nivel_de_confianza }}\nDescripción: {{ $json['Descripción_motivo'] }}\nEstado: {{ $json.Estado_sol }}",
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -1472,
+          672
+        ],
+        "id": "15d5a0ff-2ea0-4c7b-8114-5af33762e52e",
+        "name": "enviar mensaje de información al estudiante",
+        "webhookId": "02f3c2df-e7c1-4a94-a787-ca330eb8ff3f",
+        "credentials": {
+          "telegramApi": {
+            "id": "g6MKDRB9nGvHTXQQ",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "documentId": {
+            "__rl": true,
+            "value": "14zpymnSklp0PRp-PW7VNua7G2iFor1ulIK_p66X_-FY",
+            "mode": "list",
+            "cachedResultName": "Info_Inasistencias",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14zpymnSklp0PRp-PW7VNua7G2iFor1ulIK_p66X_-FY/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "gid=0",
+            "mode": "list",
+            "cachedResultName": "Hoja 1",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14zpymnSklp0PRp-PW7VNua7G2iFor1ulIK_p66X_-FY/edit#gid=0"
+          },
+          "filtersUI": {
+            "values": [
+              {
+                "lookupColumn": "ID_solicitud",
+                "lookupValue": "={{ $json.message.text }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          -1856,
+          672
+        ],
+        "id": "bfc4b35c-da2c-4103-b094-91722d09099d",
+        "name": "buscar id de solicitud",
+        "alwaysOutputData": true,
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "pOTLqPNuZ6A9CYzK",
+            "name": "Google Sheets OAuth2 API"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "0b1fb342-ac81-4f57-ad5a-ab68f6966bfa",
+                "name": "ID_solicitud",
+                "value": "={{ $json.ID_solicitud }}",
+                "type": "string"
+              },
+              {
+                "id": "cb1f4819-dcb4-41ee-bdcc-c28ed8f53277",
+                "name": "ID_estudiante",
+                "value": "={{ $json.ID_estudiante }}",
+                "type": "number"
+              },
+              {
+                "id": "6652ffb0-1255-4be8-ba77-14a8359d8af1",
+                "name": "Correo",
+                "value": "={{ $json.Correo }}",
+                "type": "string"
+              },
+              {
+                "id": "a6ebfdb6-c50e-4a63-98d6-22fdc2f3f5bd",
+                "name": "Nombre",
+                "value": "={{ $json.Nombre }}",
+                "type": "string"
+              },
+              {
+                "id": "0e44b3d2-9d16-478a-892f-bee34c5f199e",
+                "name": "Teléfono",
+                "value": "={{ $json['Teléfono'] }}",
+                "type": "string"
+              },
+              {
+                "id": "f75c2b82-3f5e-4c8a-8002-5832a956604b",
+                "name": "Curso",
+                "value": "={{ $json.Curso }}",
+                "type": "string"
+              },
+              {
+                "id": "30661e74-de96-407f-b664-a617c1e63596",
+                "name": "Motivo_Inasistencia",
+                "value": "={{ $json.Motivo_Inasistencia }}",
+                "type": "string"
+              },
+              {
+                "id": "70ee275a-1fcf-488d-a256-31c6902dae7a",
+                "name": "Descripción_motivo",
+                "value": "={{ $json['Descripción_motivo'] }}",
+                "type": "string"
+              },
+              {
+                "id": "aee0efa8-13f3-4ca2-bcd6-a479fc797d02",
+                "name": "Url_imagen",
+                "value": "={{ $json.Url_imagen }}",
+                "type": "string"
+              },
+              {
+                "id": "72db6f12-5d57-4699-af01-e3aa6a21b941",
+                "name": "Validación",
+                "value": "={{ $json['Validación'] }}",
+                "type": "string"
+              },
+              {
+                "id": "781e4156-3a10-49aa-99da-9bfddf1dc750",
+                "name": "Nivel_de_confianza",
+                "value": "={{ $json.Nivel_de_confianza }}",
+                "type": "string"
+              },
+              {
+                "id": "d42a260b-7462-45c6-aa01-6d6e183abc31",
+                "name": "Estado_sol",
+                "value": "={{ $json.Estado_sol }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -1664,
+          848
+        ],
+        "id": "056c034e-9bf5-479f-8ccb-0542100f125e",
+        "name": "Edit Fields1"
+      },
+      {
+        "parameters": {
+          "chatId": "8697293554",
+          "text": "= Solicitud:  {{ $json.ID_solicitud }} \nEstudiante ID: {{ $json.ID_estudiante }} \nNombre Estudiante: {{ $json.Nombre }} \nTeléfono: {{ $json['Teléfono'] }} \nCorreo: {{ $json.Correo }}  \nMotivo inasistencia: {{ $json.Motivo_Inasistencia }} \nImagen soporte: {{ $json.Url_imagen }} \nValidación: {{ $json['Validación'] }} \nConfianza: {{ $json.Nivel_de_confianza }} \nDescripción: {{ $json['Descripción_motivo'] }} \nEstado: {{ $json.Estado_sol }}",
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          -1472,
+          848
+        ],
+        "id": "081ebadb-3003-4a0f-8c4a-5217d849329d",
+        "name": "enviar mensaje de información al estudiante1",
+        "webhookId": "02f3c2df-e7c1-4a94-a787-ca330eb8ff3f",
+        "credentials": {
+          "telegramApi": {
+            "id": "g6MKDRB9nGvHTXQQ",
+            "name": "Telegram account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "documentId": {
+            "__rl": true,
+            "value": "14zpymnSklp0PRp-PW7VNua7G2iFor1ulIK_p66X_-FY",
+            "mode": "list",
+            "cachedResultName": "Info_Inasistencias",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14zpymnSklp0PRp-PW7VNua7G2iFor1ulIK_p66X_-FY/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "gid=0",
+            "mode": "list",
+            "cachedResultName": "Hoja 1",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14zpymnSklp0PRp-PW7VNua7G2iFor1ulIK_p66X_-FY/edit#gid=0"
+          },
+          "filtersUI": {
+            "values": [
+              {
+                "lookupColumn": "ID_estudiante",
+                "lookupValue": "={{ $('Telegram Trigger').item.json.message.text }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          -1856,
+          848
+        ],
+        "id": "48b0a425-909a-4e57-b792-cd31598904a5",
+        "name": "buscar solicitud por ID de estudiante",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "pOTLqPNuZ6A9CYzK",
+            "name": "Google Sheets OAuth2 API"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "b7a26104-7ee9-4b5b-8a56-8c9831ccea39",
+                "leftValue": "={{ $json.message.text }}",
+                "rightValue": "SOL",
+                "operator": {
+                  "type": "string",
+                  "operation": "contains"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          -2032,
+          752
+        ],
+        "id": "12019835-0af6-4ee3-b390-779693a18e46",
+        "name": "If"
+      }
+    ],
+    "connections": {
+      "Telegram Trigger": {
+        "main": [
+          [
+            {
+              "node": "If",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields": {
+        "main": [
+          [
+            {
+              "node": "enviar mensaje de información al estudiante",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "buscar id de solicitud": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields1": {
+        "main": [
+          [
+            {
+              "node": "enviar mensaje de información al estudiante1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "buscar solicitud por ID de estudiante": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If": {
+        "main": [
+          [
+            {
+              "node": "buscar id de solicitud",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "buscar solicitud por ID de estudiante",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "pinData": {},
+    "meta": {
+      "templateCredsSetupCompleted": true,
+      "instanceId": "0e8740314be883c697d550def86aebf458563700b936ddf7d3375efcb672f7dd"
+    }
+  }
