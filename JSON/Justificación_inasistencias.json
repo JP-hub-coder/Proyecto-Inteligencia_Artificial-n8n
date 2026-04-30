@@ -1,0 +1,899 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "justificacion",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "3336ae4c-6361-425b-b83a-e6eb564ebfcf",
+      "name": "Recibir Formulario",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2032,
+        368
+      ],
+      "webhookId": "mi-webhook-justificacion"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Tomamos el item actual\nconst item = $input.item;\n\n// Datos del formulario (vienen en body)\nconst body = item.json.body || {};\n\n// Datos del archivo (binario)\nconst file = item.binary?.Url_imagen || {};\n\n// Detectar tipo MIME (por si acaso)\nconst mimeType = file.mimeType || 'image/png';\n\nreturn [\n  {\n    json: {\n      ID_estudiante: body.ID_estudiante,\n      Correo: body.Correo,\n      Nombre: body.Nombre,\n      Telefono: body['Teléfono'],\n      Curso: body.Curso,\n      Motivo_inasistencia: body.Motivo_inasistencia,\n      fecha_inicio: body.fecha_inicio,\n      fecha_fin: body.fecha_fin,\n      rango_fechas: body.rango_fechas,\n      ID_solicitud: `SOL-${new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 15)}`,\n      descripcion: body.descripcion,\n      timestamp: body.timestamp,\n\n      // Información del archivo\n      archivo: {\n        nombre: file.fileName || null,\n        tipo: mimeType,\n        tamaño: file.fileSize || null\n      },\n\n      binary: {\n      Url_imagen: item.binary?.Url_imagen  // 👈 preservar el binario\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1856,
+        368
+      ],
+      "id": "b6c24a8a-01b2-4ec8-b371-3665239a5a54",
+      "name": "Code in JavaScript",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.validez }}",
+                    "rightValue": "valida",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "0ccb69ea-bb20-4133-bb92-843591cea334"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "válida"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "233bbdd7-4870-4834-aa97-d5bfa706d0e0",
+                    "leftValue": "={{ $json.output.validez }}",
+                    "rightValue": "invalida",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "inválida"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "90a86241-597b-4c20-871a-849bdafbab70",
+                    "leftValue": "={{ $json.output.validez }}",
+                    "rightValue": "dudosa",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "dudosa"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -1216,
+        352
+      ],
+      "id": "602c91b5-5589-43b8-be52-f78ba3b900fe",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.ocr.space/parse/image",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "K87566007788957"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "={{ $json.binary.Url_imagen }}"
+            },
+            {
+              "name": "language",
+              "value": "spa"
+            },
+            {
+              "name": "isOverlayRequired",
+              "value": "false"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1696,
+        368
+      ],
+      "id": "f4132951-1027-413c-bb73-e1e969c75f78",
+      "name": "HTTP Request",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "DUtssN0R26Hz9bom",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "14zpymnSklp0PRp-PW7VNua7G2iFor1ulIK_p66X_-FY",
+          "mode": "list",
+          "cachedResultName": "Info_Inasistencias",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14zpymnSklp0PRp-PW7VNua7G2iFor1ulIK_p66X_-FY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14zpymnSklp0PRp-PW7VNua7G2iFor1ulIK_p66X_-FY/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID_estudiante": "={{ $('Code in JavaScript').item.json.ID_estudiante }}",
+            "Correo": "={{ $('Code in JavaScript').item.json.Correo }}",
+            "Nombre": "={{ $('Code in JavaScript').item.json.Nombre }}",
+            "Teléfono": "={{ $('Code in JavaScript').item.json.Telefono }}",
+            "Curso": "={{ $('Code in JavaScript').item.json.Curso }}",
+            "Motivo_Inasistencia": "={{ $('Code in JavaScript').item.json.Motivo_inasistencia }}",
+            "Descripción_motivo": "={{ $('Code in JavaScript').item.json.descripcion }}",
+            "ID_solicitud": "={{ $('Code in JavaScript').item.json.ID_solicitud }}",
+            "Validación": "={{ $json.output.validez }}",
+            "Nivel_de_confianza": "={{ $json.output.confiabilidad }}",
+            "Estado_sol": "={{ $json.output.estado }}"
+          },
+          "matchingColumns": [
+            "ID_solicitud"
+          ],
+          "schema": [
+            {
+              "id": "ID_solicitud",
+              "displayName": "ID_solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ID_estudiante",
+              "displayName": "ID_estudiante",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Correo",
+              "displayName": "Correo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Teléfono",
+              "displayName": "Teléfono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Curso",
+              "displayName": "Curso",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Motivo_Inasistencia",
+              "displayName": "Motivo_Inasistencia",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Descripción_motivo",
+              "displayName": "Descripción_motivo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Validación",
+              "displayName": "Validación",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Nivel_de_confianza",
+              "displayName": "Nivel_de_confianza",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Estado_sol",
+              "displayName": "Estado_sol",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1040,
+        192
+      ],
+      "id": "e12062d8-137a-4251-a113-85f1b02286a7",
+      "name": "Enviar al sheeets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pOTLqPNuZ6A9CYzK",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "094f69bb-1c4d-477c-b750-84b9b7e136ec",
+              "name": "message",
+              "value": "=✅ Justificación enviada con éxito.  \nTu solicitud fue recibida correctamente y será revisada por la institución.  \nGracias.\n\nEstado de la solicitud: {{ $('AI Agent').item.json.output.estado }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -848,
+        192
+      ],
+      "id": "5d24726c-e3c2-49ac-ab2c-aff30d29b828",
+      "name": "Mensaje de terminado"
+    },
+    {
+      "parameters": {
+        "chatId": "8697293554",
+        "text": "={{ $json.message }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -656,
+        192
+      ],
+      "id": "0cf9c718-a980-40e4-8bd5-55be760d32a7",
+      "name": "Enviar confirmación de la solicitud",
+      "webhookId": "61b5aa94-6012-4abe-994d-57ac2dc10ca7",
+      "credentials": {
+        "telegramApi": {
+          "id": "g6MKDRB9nGvHTXQQ",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "444c979e-0c9a-446c-8157-81b8fd498349",
+              "name": "message",
+              "value": "❌ No se pudo enviar la justificación.\nLa solicitud no es válida. \nPor favor, revisa los datos e inténtalo nuevamente.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -848,
+        368
+      ],
+      "id": "899d8cf4-c76f-4597-bc50-7f6f3475a92b",
+      "name": "arreglar mensaje de solicitud inválida"
+    },
+    {
+      "parameters": {
+        "chatId": "8697293554",
+        "text": "={{ json.message }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -656,
+        368
+      ],
+      "id": "61482383-c55b-4203-a3ac-2c6d045e38cd",
+      "name": "enviar mensaje de negación de solicitud",
+      "webhookId": "37cfb7f7-9e9b-45b4-a808-4dcd20aba0ca",
+      "credentials": {
+        "telegramApi": {
+          "id": "g6MKDRB9nGvHTXQQ",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "8697293554",
+        "text": "=se requiere revisión de la siguiente solicitud: \n\nSolicitud:  {{ $('Code in JavaScript').item.json.ID_solicitud }}\nEstudiante ID: {{ $('Code in JavaScript').item.json.ID_estudiante }}\nNombre Estudiante: {{ $('Code in JavaScript').item.json.Nombre }}\nTeléfono: {{ $('Code in JavaScript').item.json.Telefono }}\nCorreo: {{ $('Code in JavaScript').item.json.Correo }}\nMotivo inasistencia: {{ $('Code in JavaScript').item.json.Motivo_inasistencia }}\nDescripción: {{ $('Code in JavaScript').item.json.descripcion }}\nValidación: {{ $('AI Agent').item.json.output.validez }}\nConfianza: {{ $('AI Agent').item.json.output.confiabilidad }}\nEstado: {{ $('AI Agent').item.json.output.estado }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1024,
+        560
+      ],
+      "id": "7a06695f-3e43-47b1-b09e-54a68a2b3660",
+      "name": "enviar mensaje al admin",
+      "webhookId": "f3b6c5dd-1b66-4e7b-bc58-3710c143e1ed",
+      "credentials": {
+        "telegramApi": {
+          "id": "g6MKDRB9nGvHTXQQ",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "67b9d9ec-78fc-470f-b7c2-95688f18b1fa",
+              "name": "message",
+              "value": "⚠️ Justificación en revisión.\nTu solicitud presenta algunas inconsistencias y será revisada por un administrador.  \nTe informaremos cualquier novedad.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -832,
+        560
+      ],
+      "id": "12f2bb70-22c8-497a-82fc-a3e564f5d7b2",
+      "name": "mensaje para el estudiante"
+    },
+    {
+      "parameters": {
+        "chatId": "8697293554",
+        "text": "={{ $json.message }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -640,
+        560
+      ],
+      "id": "6fbac39b-601e-4993-ad1e-f33ad843234d",
+      "name": "enviar mensaje de revision al estudiante",
+      "webhookId": "02f3c2df-e7c1-4a94-a787-ca330eb8ff3f",
+      "credentials": {
+        "telegramApi": {
+          "id": "g6MKDRB9nGvHTXQQ",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -1856,
+        208
+      ],
+      "id": "924a5644-62d4-4fd9-b50b-c0ee2ec5e70e",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analiza la información de la imagen del documento y la descripción de  la falta por parte del estudiante.\nDetermina si la imagen respalda la justificación.\nClasifica como:\n- valida - si es valida dale un estado de: Aprobado, Rechazado o en revisión\n- invalida\n- dudosa\nDESCRIPCIÓN:\n{{ $('Code in JavaScript').item.json.descripcion }}\nINFO IMAGEN:\n{{ $json.ParsedResults[0].ParsedText }}\ny añade un porcentaje de confianza en un json así:\n\n{\n  \"Confianza\": porcentaje de confiabilidad\n  \"Validez\": valida | invalida | dudosa\n}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -1488,
+        368
+      ],
+      "id": "79ee4b2c-eebb-4200-94c7-01558c854754",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "poolside/laguna-xs.2:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -1488,
+        560
+      ],
+      "id": "a1dd6c77-2c05-4ed9-8970-09568f678796",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "W3RSFQw8gvRMQNfj",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"validez\": \"valida\",\n\t\"confiabilidad\": \"porcentaje\",\n    \"estado\": \"en revisión\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -1344,
+        560
+      ],
+      "id": "01f35660-217e-4060-87f9-0e91a645e0a8",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "14zpymnSklp0PRp-PW7VNua7G2iFor1ulIK_p66X_-FY",
+          "mode": "list",
+          "cachedResultName": "Info_Inasistencias",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14zpymnSklp0PRp-PW7VNua7G2iFor1ulIK_p66X_-FY/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14zpymnSklp0PRp-PW7VNua7G2iFor1ulIK_p66X_-FY/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID_estudiante": "={{ $('Code in JavaScript').item.json.ID_estudiante }}",
+            "Correo": "={{ $('Code in JavaScript').item.json.Correo }}",
+            "Nombre": "={{ $('Code in JavaScript').item.json.Nombre }}",
+            "Teléfono": "={{ $('Code in JavaScript').item.json.Telefono }}",
+            "Curso": "={{ $('Code in JavaScript').item.json.Curso }}",
+            "Motivo_Inasistencia": "={{ $('Code in JavaScript').item.json.Motivo_inasistencia }}",
+            "Descripción_motivo": "={{ $('Code in JavaScript').item.json.descripcion }}",
+            "ID_solicitud": "={{ $('Code in JavaScript').item.json.ID_solicitud }}",
+            "Validación": "={{ $json.output.validez }}",
+            "Nivel_de_confianza": "={{ $json.output.confiabilidad }}",
+            "Estado_sol": "={{ $json.output.estado }}"
+          },
+          "matchingColumns": [
+            "ID_solicitud"
+          ],
+          "schema": [
+            {
+              "id": "ID_solicitud",
+              "displayName": "ID_solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "ID_estudiante",
+              "displayName": "ID_estudiante",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Correo",
+              "displayName": "Correo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Teléfono",
+              "displayName": "Teléfono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Curso",
+              "displayName": "Curso",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Motivo_Inasistencia",
+              "displayName": "Motivo_Inasistencia",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Descripción_motivo",
+              "displayName": "Descripción_motivo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Validación",
+              "displayName": "Validación",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Nivel_de_confianza",
+              "displayName": "Nivel_de_confianza",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Estado_sol",
+              "displayName": "Estado_sol",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1040,
+        368
+      ],
+      "id": "e39f022d-c59f-46e0-bba9-ad1d8c9c1a26",
+      "name": "Enviar al sheeets (aunque esté inválida)",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "pOTLqPNuZ6A9CYzK",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Recibir Formulario": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Enviar al sheeets",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Enviar al sheeets (aunque esté inválida)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "enviar mensaje al admin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar al sheeets": {
+      "main": [
+        [
+          {
+            "node": "Mensaje de terminado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mensaje de terminado": {
+      "main": [
+        [
+          {
+            "node": "Enviar confirmación de la solicitud",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "arreglar mensaje de solicitud inválida": {
+      "main": [
+        [
+          {
+            "node": "enviar mensaje de negación de solicitud",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "enviar mensaje al admin": {
+      "main": [
+        [
+          {
+            "node": "mensaje para el estudiante",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "mensaje para el estudiante": {
+      "main": [
+        [
+          {
+            "node": "enviar mensaje de revision al estudiante",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar al sheeets (aunque esté inválida)": {
+      "main": [
+        [
+          {
+            "node": "arreglar mensaje de solicitud inválida",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0e8740314be883c697d550def86aebf458563700b936ddf7d3375efcb672f7dd"
+  }
+}
