@@ -1,0 +1,958 @@
+{
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "justificacion",
+          "responseMode": "responseNode",
+          "options": {
+            "allowedOrigins": "*"
+          }
+        },
+        "id": "13141a69-f3a3-42ae-90ab-175d57c4a277",
+        "name": "Recibir Formulario",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          -992,
+          176
+        ],
+        "webhookId": "mi-webhook-justificacion"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Tomamos el item actual\nconst item = $input.item;\n\n// Datos del formulario (vienen en body)\nconst body = item.json.body || {};\n\n// Datos del archivo (binario)\nconst file = item.binary?.Url_imagen || {};\n\n// Detectar tipo MIME (por si acaso)\nconst mimeType = file.mimeType || 'image/png';\n\nreturn [\n  {\n    json: {\n      ID_estudiante: body.ID_estudiante,\n      Correo: body.Correo,\n      Nombre: body.Nombre,\n      Telefono: body['Teléfono'],\n      Curso: body.Curso,\n      Motivo_inasistencia: body.Motivo_inasistencia,\n      fecha_inicio: body.fecha_inicio,\n      fecha_fin: body.fecha_fin,\n      rango_fechas: body.rango_fechas,\n      ID_solicitud: `SOL-${new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 15)}`,\n      descripcion: body.descripcion,\n      timestamp: body.timestamp,\n\n      // Información del archivo\n      archivo: {\n        nombre: file.fileName || null,\n        tipo: mimeType,\n        tamaño: file.fileSize || null\n      },\n\n      binary: {\n      Url_imagen: item.binary?.Url_imagen  // 👈 preservar el binario\n      }\n    }\n  }\n];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -816,
+          176
+        ],
+        "id": "c764ff92-ced2-4b71-8b8f-4c979107ebe5",
+        "name": "Code in JavaScript",
+        "executeOnce": false
+      },
+      {
+        "parameters": {
+          "rules": {
+            "values": [
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "leftValue": "={{ $json.output.validez }}",
+                      "rightValue": "valida",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      },
+                      "id": "0ccb69ea-bb20-4133-bb92-843591cea334"
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "válida"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "233bbdd7-4870-4834-aa97-d5bfa706d0e0",
+                      "leftValue": "={{ $json.output.validez }}",
+                      "rightValue": "invalida",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "inválida"
+              },
+              {
+                "conditions": {
+                  "options": {
+                    "caseSensitive": true,
+                    "leftValue": "",
+                    "typeValidation": "strict",
+                    "version": 3
+                  },
+                  "conditions": [
+                    {
+                      "id": "90a86241-597b-4c20-871a-849bdafbab70",
+                      "leftValue": "={{ $json.output.validez }}",
+                      "rightValue": "dudosa",
+                      "operator": {
+                        "type": "string",
+                        "operation": "equals"
+                      }
+                    }
+                  ],
+                  "combinator": "and"
+                },
+                "renameOutput": true,
+                "outputKey": "dudosa"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3.4,
+        "position": [
+          64,
+          144
+        ],
+        "id": "253ac2cf-8676-4a60-b238-6f62ebe3cfe1",
+        "name": "Switch"
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.ocr.space/parse/image",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpBasicAuth",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "apikey",
+                "value": "K87566007788957"
+              }
+            ]
+          },
+          "sendBody": true,
+          "contentType": "multipart-form-data",
+          "bodyParameters": {
+            "parameters": [
+              {
+                "parameterType": "formBinaryData",
+                "name": "file",
+                "inputDataFieldName": "={{ $json.binary.Url_imagen }}"
+              },
+              {
+                "name": "language",
+                "value": "spa"
+              },
+              {
+                "name": "isOverlayRequired",
+                "value": "false"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.4,
+        "position": [
+          -656,
+          176
+        ],
+        "id": "1243209f-763a-4abf-8024-81892fb26952",
+        "name": "HTTP Request",
+        "credentials": {
+          "httpBasicAuth": {
+            "id": "eZIgeB0CCkY2htG8",
+            "name": "Unnamed credential"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "14zpymnSklp0PRp-PW7VNua7G2iFor1ulIK_p66X_-FY",
+            "mode": "list",
+            "cachedResultName": "Info_Inasistencias",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14zpymnSklp0PRp-PW7VNua7G2iFor1ulIK_p66X_-FY/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "gid=0",
+            "mode": "list",
+            "cachedResultName": "Hoja 1",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14zpymnSklp0PRp-PW7VNua7G2iFor1ulIK_p66X_-FY/edit#gid=0"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "ID_estudiante": "={{ $('Code in JavaScript').item.json.ID_estudiante }}",
+              "Correo": "={{ $('Code in JavaScript').item.json.Correo }}",
+              "Nombre": "={{ $('Code in JavaScript').item.json.Nombre }}",
+              "Teléfono": "={{ $('Code in JavaScript').item.json.Telefono }}",
+              "Curso": "={{ $('Code in JavaScript').item.json.Curso }}",
+              "Motivo_Inasistencia": "={{ $('Code in JavaScript').item.json.Motivo_inasistencia }}",
+              "Descripción_motivo": "={{ $('Code in JavaScript').item.json.descripcion }}",
+              "ID_solicitud": "={{ $('Code in JavaScript').item.json.ID_solicitud }}",
+              "Validación": "={{ $('AI Agent').item.json.output.validez }}",
+              "Nivel_de_confianza": "={{ $('AI Agent').item.json.output.confiabilidad }}",
+              "Estado_sol": "={{ $('AI Agent').item.json.output.estado }}",
+              "Prioridad": "={{ $('AI Agent').item.json.output.prioridad }}"
+            },
+            "matchingColumns": [
+              "ID_solicitud"
+            ],
+            "schema": [
+              {
+                "id": "ID_solicitud",
+                "displayName": "ID_solicitud",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "ID_estudiante",
+                "displayName": "ID_estudiante",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Correo",
+                "displayName": "Correo",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Nombre",
+                "displayName": "Nombre",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Teléfono",
+                "displayName": "Teléfono",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Curso",
+                "displayName": "Curso",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Motivo_Inasistencia",
+                "displayName": "Motivo_Inasistencia",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Descripción_motivo",
+                "displayName": "Descripción_motivo",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Validación",
+                "displayName": "Validación",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Nivel_de_confianza",
+                "displayName": "Nivel_de_confianza",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Estado_sol",
+                "displayName": "Estado_sol",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Prioridad",
+                "displayName": "Prioridad",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          368,
+          -16
+        ],
+        "id": "1d7c2837-198d-422f-80db-c70c2d02f7a4",
+        "name": "Enviar al sheeets",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "eBkmrE8NARWSx0AT",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "094f69bb-1c4d-477c-b750-84b9b7e136ec",
+                "name": "message",
+                "value": "=✅ Justificación enviada con éxito.  \nTu solicitud fue recibida correctamente y será revisada por la institución.  \nGracias.\n\nEstado de la solicitud: {{ $('AI Agent').item.json.output.estado }}",
+                "type": "string"
+              },
+              {
+                "id": "b2d92b79-df0f-40cc-a38c-88bc132cf108",
+                "name": "",
+                "value": "",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          576,
+          -16
+        ],
+        "id": "2ed0f9f9-4ff8-4351-9b82-81f9f193730c",
+        "name": "Mensaje de terminado"
+      },
+      {
+        "parameters": {
+          "chatId": "8697293554",
+          "text": "=se requiere revisión de la siguiente solicitud: \n\nSolicitud:  {{ $('Code in JavaScript').item.json.ID_solicitud }}\nEstudiante ID: {{ $('Code in JavaScript').item.json.ID_estudiante }}\nNombre Estudiante: {{ $('Code in JavaScript').item.json.Nombre }}\nTeléfono: {{ $('Code in JavaScript').item.json.Telefono }}\nCorreo: {{ $('Code in JavaScript').item.json.Correo }}\nMotivo inasistencia: {{ $('Code in JavaScript').item.json.Motivo_inasistencia }}\nDescripción: {{ $('Code in JavaScript').item.json.descripcion }}\nValidación: {{ $('AI Agent').item.json.output.validez }}\nConfianza: {{ $('AI Agent').item.json.output.confiabilidad }}\nEstado: {{ $('AI Agent').item.json.output.estado }}",
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          368,
+          336
+        ],
+        "id": "c7b1cf45-796c-4e55-b1a1-bbe4548c9335",
+        "name": "enviar mensaje al admin",
+        "webhookId": "f3b6c5dd-1b66-4e7b-bc58-3710c143e1ed",
+        "credentials": {
+          "telegramApi": {
+            "id": "MZDoSsBmIWCDpVSU",
+            "name": "Telegram account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "67b9d9ec-78fc-470f-b7c2-95688f18b1fa",
+                "name": "message",
+                "value": "=Buenas tardes, dias o noches señor(a):  {{ $('Code in JavaScript').item.json.Nombre }}\n\nSu justificación ha sido: {{ $('AI Agent').item.json.output.validez }}.\n\n\nPresenta algunas inconsistencias y será revisada por un administrador.\n\nSe le informará cualquier novedad.",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          576,
+          240
+        ],
+        "id": "0d018044-45e4-4484-9f68-83ca4f80b84d",
+        "name": "mensaje para el estudiante"
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.5,
+        "position": [
+          -816,
+          16
+        ],
+        "id": "8af79617-d424-4520-b3b3-55e85fdc3de0",
+        "name": "Respond to Webhook"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "=Analiza la información de la imagen del documento y la descripción de  la falta por parte del estudiante.\nDetermina si la imagen respalda la justificación.\nClasifica como:\n- valida - si es valida dale un estado de: Aprobado, Rechazado o en revisión (únicamente uno de esos tres, no le añadas ningún otro tipo de estado)\n- invalida\n- dudosa\nDESCRIPCIÓN:\n{{ $('Code in JavaScript').item.json.descripcion }}\nINFO IMAGEN:\n{{ $json.ParsedResults[0].ParsedText }}\ny añade un porcentaje de confianza en un json así:\n\n{\n  \"Confianza\": porcentaje de confiabilidad\n  \"Validez\": valida | invalida | dudosa\n}\n\ny tambien:\nSi el motivo contiene palabras clave como: \"hospital\", \"urgencia\",\n\"cirugía\" → prioridad ALTA\n■ Si contiene: \"médico\", \"salud\" → prioridad MEDIA\n■ Otros casos → prioridad BAJA",
+          "hasOutputParser": true,
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3.1,
+        "position": [
+          -512,
+          176
+        ],
+        "id": "741355c4-5edd-47c7-a40a-86ea64718bd3",
+        "name": "AI Agent"
+      },
+      {
+        "parameters": {
+          "model": "poolside/laguna-xs.2:free",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+        "typeVersion": 1,
+        "position": [
+          -512,
+          368
+        ],
+        "id": "8ff51eb8-e429-4081-8b62-42ffae0d4fb3",
+        "name": "OpenRouter Chat Model",
+        "credentials": {
+          "openRouterApi": {
+            "id": "HXguh04qnZwHW0WA",
+            "name": "OpenRouter account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsonSchemaExample": "{\n\t\"validez\": \"\",\n\t\"confiabilidad\": \"\",\n    \"estado\": \"\",\n    \"prioridad\": \"\"\n}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+        "typeVersion": 1.3,
+        "position": [
+          -368,
+          368
+        ],
+        "id": "59b77e48-30f0-4c86-b6b9-49561bb4f85f",
+        "name": "Structured Output Parser"
+      },
+      {
+        "parameters": {
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "14zpymnSklp0PRp-PW7VNua7G2iFor1ulIK_p66X_-FY",
+            "mode": "list",
+            "cachedResultName": "Info_Inasistencias",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14zpymnSklp0PRp-PW7VNua7G2iFor1ulIK_p66X_-FY/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "gid=0",
+            "mode": "list",
+            "cachedResultName": "Hoja 1",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/14zpymnSklp0PRp-PW7VNua7G2iFor1ulIK_p66X_-FY/edit#gid=0"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "ID_estudiante": "={{ $('Code in JavaScript').item.json.ID_estudiante }}",
+              "Correo": "={{ $('Code in JavaScript').item.json.Correo }}",
+              "Nombre": "={{ $('Code in JavaScript').item.json.Nombre }}",
+              "Teléfono": "={{ $('Code in JavaScript').item.json.Telefono }}",
+              "Curso": "={{ $('Code in JavaScript').item.json.Curso }}",
+              "Motivo_Inasistencia": "={{ $('Code in JavaScript').item.json.Motivo_inasistencia }}",
+              "Descripción_motivo": "={{ $('Code in JavaScript').item.json.descripcion }}",
+              "ID_solicitud": "={{ $('Code in JavaScript').item.json.ID_solicitud }}",
+              "Validación": "={{ $('AI Agent').item.json.output.validez }}",
+              "Nivel_de_confianza": "={{ $('AI Agent').item.json.output.confiabilidad }}",
+              "Estado_sol": "={{ $('AI Agent').item.json.output.estado }}",
+              "Prioridad": "={{ $('AI Agent').item.json.output.prioridad }}"
+            },
+            "matchingColumns": [
+              "ID_solicitud"
+            ],
+            "schema": [
+              {
+                "id": "ID_solicitud",
+                "displayName": "ID_solicitud",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "ID_estudiante",
+                "displayName": "ID_estudiante",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Correo",
+                "displayName": "Correo",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Nombre",
+                "displayName": "Nombre",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Teléfono",
+                "displayName": "Teléfono",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Curso",
+                "displayName": "Curso",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Motivo_Inasistencia",
+                "displayName": "Motivo_Inasistencia",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Descripción_motivo",
+                "displayName": "Descripción_motivo",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Validación",
+                "displayName": "Validación",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Nivel_de_confianza",
+                "displayName": "Nivel_de_confianza",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Estado_sol",
+                "displayName": "Estado_sol",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Prioridad",
+                "displayName": "Prioridad",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          368,
+          160
+        ],
+        "id": "3f8e7c48-2cc3-490c-a1a0-5c22ddee2ff3",
+        "name": "Enviar al sheeets (aunque esté inválida)",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "eBkmrE8NARWSx0AT",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "sendTo": "={{ $('Code in JavaScript').item.json.Correo }}",
+          "subject": "No-responder",
+          "emailType": "text",
+          "message": "={{ $json.message }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.2,
+        "position": [
+          752,
+          240
+        ],
+        "id": "87441561-2269-4608-bc72-fbbe14093016",
+        "name": "Send a message",
+        "webhookId": "009ba656-1fea-42e3-9f95-b181bf891930",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "mamTVb80K9htOADK",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "sendTo": "={{ $('Code in JavaScript').item.json.Correo }}",
+          "subject": "No-responder",
+          "emailType": "text",
+          "message": "={{ $json.message }}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.2,
+        "position": [
+          736,
+          -16
+        ],
+        "id": "954b0679-3282-4cf8-b164-9861903f7fd4",
+        "name": "Send a message1",
+        "webhookId": "009ba656-1fea-42e3-9f95-b181bf891930",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "mamTVb80K9htOADK",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "chatId": "8697293554",
+          "text": "=■ Caso Prioritario Detectado\n■ ID: {{ $('Code in JavaScript').item.json.ID_solicitud }}\n■ Motivo: {{ $('Code in JavaScript').item.json.Motivo_inasistencia }}\n■ Descriipción: {{ $('Code in JavaScript').item.json.descripcion }}",
+          "additionalFields": {}
+        },
+        "type": "n8n-nodes-base.telegram",
+        "typeVersion": 1.2,
+        "position": [
+          64,
+          0
+        ],
+        "id": "c8e6f381-af3f-46bb-ad7b-d55f90270877",
+        "name": "enviar mensaje al admin1",
+        "webhookId": "f3b6c5dd-1b66-4e7b-bc58-3710c143e1ed",
+        "credentials": {
+          "telegramApi": {
+            "id": "MZDoSsBmIWCDpVSU",
+            "name": "Telegram account 2"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 3
+            },
+            "conditions": [
+              {
+                "id": "db3a7949-6b55-4b9d-b0b8-2a8c7328f282",
+                "leftValue": "={{ $json.output.prioridad }}",
+                "rightValue": "ALTA",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.3,
+        "position": [
+          -160,
+          176
+        ],
+        "id": "d18b5e9a-c097-4bff-9a40-6c47be932c73",
+        "name": "If"
+      }
+    ],
+    "connections": {
+      "Recibir Formulario": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code in JavaScript": {
+        "main": [
+          [
+            {
+              "node": "HTTP Request",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Switch": {
+        "main": [
+          [
+            {
+              "node": "Enviar al sheeets",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Enviar al sheeets (aunque esté inválida)",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "enviar mensaje al admin",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "HTTP Request": {
+        "main": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Enviar al sheeets": {
+        "main": [
+          [
+            {
+              "node": "Mensaje de terminado",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Mensaje de terminado": {
+        "main": [
+          [
+            {
+              "node": "Send a message1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "enviar mensaje al admin": {
+        "main": [
+          [
+            {
+              "node": "mensaje para el estudiante",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "mensaje para el estudiante": {
+        "main": [
+          [
+            {
+              "node": "Send a message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Agent": {
+        "main": [
+          [
+            {
+              "node": "If",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "OpenRouter Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Structured Output Parser": {
+        "ai_outputParser": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_outputParser",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Enviar al sheeets (aunque esté inválida)": {
+        "main": [
+          [
+            {
+              "node": "mensaje para el estudiante",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "enviar mensaje al admin1": {
+        "main": [
+          []
+        ]
+      },
+      "If": {
+        "main": [
+          [
+            {
+              "node": "Switch",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "enviar mensaje al admin1",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Switch",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "pinData": {},
+    "meta": {
+      "templateCredsSetupCompleted": true,
+      "instanceId": "f11c5ec4b4cf2521a820383d4bf1dceddeaeb2f320afffb1ae0fb6d9ab88a77b"
+    }
+  }
